@@ -1,13 +1,14 @@
-function Watcher(vm, expOrFn, cb) {
+function Watcher(vm, expOrFn, cb) { // vm实例对象， 指令值（普通指令是值，事件指令是事件函数）， 回调函数
     this.cb = cb;
     this.vm = vm;
     this.expOrFn = expOrFn;
     this.depIds = {};
 
-    if (typeof expOrFn === 'function') {
+    if (typeof expOrFn === 'function') { // 指令值为函数
         this.getter = expOrFn;
-    } else {
-        this.getter = this.parseGetter(expOrFn);
+    } else { // 指令值不是函数
+        this.getter = this.parseGetter(expOrFn); 
+        // parseGetter返回一个闭包函数，闭包函数又返回一个在vm实例的data数据
     }
 
     this.value = this.get();
@@ -53,7 +54,7 @@ Watcher.prototype = {
     },
 
     parseGetter: function(exp) {
-        if (/[^\w.$]/.test(exp)) return; 
+        if (/[^\w.$]/.test(exp)) return; // ^非 \w 数字字母下划线
 
         var exps = exp.split('.');
 

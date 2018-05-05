@@ -1,11 +1,12 @@
-function Compile(el, vm) {
+function Compile(el, vm) {// 根对象，当前vm实例
     this.$vm = vm;
+    // 如果是元素节点就直接使用，不是就获取
     this.$el = this.isElementNode(el) ? el : document.querySelector(el);
 
     if (this.$el) {
-        this.$fragment = this.node2Fragment(this.$el);
-        this.init();
-        this.$el.appendChild(this.$fragment);
+        this.$fragment = this.node2Fragment(this.$el); // 添加到fragment
+        this.init(); // 进行编辑
+        this.$el.appendChild(this.$fragment); // 编译完成 放回el
     }
 }
 
@@ -13,12 +14,10 @@ Compile.prototype = {
     node2Fragment: function(el) {
         var fragment = document.createDocumentFragment(),
             child;
-
         // 将原生节点拷贝到fragment
         while (child = el.firstChild) {
             fragment.appendChild(child);
         }
-
         return fragment;
     },
 
@@ -34,14 +33,14 @@ Compile.prototype = {
             var text = node.textContent;
             var reg = /\{\{(.*)\}\}/;
 
-            if (me.isElementNode(node)) {
+            if (me.isElementNode(node)) {//元素
                 me.compile(node);
 
-            } else if (me.isTextNode(node) && reg.test(text)) {
+            } else if (me.isTextNode(node) && reg.test(text)) {//属性
                 me.compileText(node, RegExp.$1);
             }
 
-            if (node.childNodes && node.childNodes.length) {
+            if (node.childNodes && node.childNodes.length) {//元素子节点处理，再次调用解析元素方法
                 me.compileElement(node);
             }
         });
@@ -52,15 +51,20 @@ Compile.prototype = {
             me = this;
 
         [].slice.call(nodeAttrs).forEach(function(attr) {
+            /*
+                node => 参数当前元素节点
+                me.$vm => vm实例对象
+                exp => 指令值（普通指令是值，事件指令是事件函数）
+                dir => 指令或者事件名
+            */
             var attrName = attr.name;
-            if (me.isDirective(attrName)) {
+            if (me.isDirective(attrName)) { // 只有是指令才执行
                 var exp = attr.value;
                 var dir = attrName.substring(2);
-                // 事件指令
-                if (me.isEventDirective(dir)) {
+                
+                if (me.isEventDirective(dir)) {// 事件指令
                     compileUtil.eventHandler(node, me.$vm, exp, dir);
-                    // 普通指令
-                } else {
+                } else {// 普通指令
                     compileUtil[dir] && compileUtil[dir](node, me.$vm, exp);
                 }
 
@@ -120,7 +124,13 @@ var compileUtil = {
         this.bind(node, vm, exp, 'class');
     },
 
-    bind: function(node, vm, exp, dir) {
+    bind: function(node, vm, exp, dir) {// 普通指令，并且给view添加监听
+        /*
+            node => 参数当前元素节点
+            vm => vm实例对象
+            exp => 指令值（普通指令是值，事件指令是事件函数）
+            dir => 指令或者事件名
+        */
         var updaterFn = updater[dir + 'Updater'];
 
         updaterFn && updaterFn(node, this._getVMVal(vm, exp));
@@ -140,10 +150,11 @@ var compileUtil = {
         }
     },
 
-    _getVMVal: function(vm, exp) {
+    _getVMVal: function(vm, exp) {// 到vm对象取值值通过vm._proxyData方法添加的代理
         var val = vm;
         exp = exp.split('.');
         exp.forEach(function(k) {
+            console.log(val)
             val = val[k];
         });
         return val;
