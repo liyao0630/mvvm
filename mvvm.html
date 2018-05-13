@@ -9,10 +9,7 @@
 <div id="mvvm-app">
     <input type="text" v-model="someStr">
     <input type="text" v-model="child.someStr">
-    <!-- <p v-class="className" class="abc">
-        {{someStr}}
-        <span v-text="child.someStr"></span>
-    </p> -->
+    <input type="text" v-model="child.someStr">
     <p>{{getHelloWord}}</p>
     <p v-html="htmlStr"></p>
     <button v-on:click="clickBtn">change model</button>
@@ -28,7 +25,6 @@
         el: '#mvvm-app',
         data: {
             someStr: 'hello ',
-            className: 'btn',
             htmlStr: '<span style="color: #f00;">red</span>',
             child: {
                 someStr: 'World !'
@@ -49,9 +45,9 @@
         }
     });
 
-    vm.$watch('child.someStr', function() {
+    /*vm.$watch('child.someStr', function() {
         console.log(arguments);
-    });
+    });*/
 </script>
 
 </body>

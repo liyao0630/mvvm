@@ -1,4 +1,4 @@
-function Watcher(vm, expOrFn, cb) { // vm实例对象， 指令值（普通指令是值，事件指令是事件函数）， 回调函数
+function Watcher(vm, expOrFn, cb) { // vm实例对象， 指令值（普通指令是值）， 回调函数
     this.cb = cb;
     this.vm = vm;
     this.expOrFn = expOrFn;
@@ -7,11 +7,9 @@ function Watcher(vm, expOrFn, cb) { // vm实例对象， 指令值（普通指�
     if (typeof expOrFn === 'function') { // 指令值为函数
         this.getter = expOrFn;
     } else { // 指令值不是函数
-        this.getter = this.parseGetter(expOrFn); 
-        // parseGetter返回一个闭包函数，闭包函数又返回一个在vm实例的data数据
+        this.getter = this.parseGetter(expOrFn); // parseGetter返回一个闭包函数
     }
-
-    this.value = this.get();
+    this.value = this.get(); // 此时this.get的返回值是expOrFnd的value值
 }
 
 Watcher.prototype = {
@@ -19,11 +17,11 @@ Watcher.prototype = {
         this.run();
     },
     run: function() {
-        var value = this.get();
+        var value = this.get(); // 返回值是expOrFnd的value值
         var oldVal = this.value;
-        if (value !== oldVal) {
+        if (value !== oldVal) { // 值不同时调用传入的回调函数
             this.value = value;
-            this.cb.call(this.vm, value, oldVal);
+            this.cb.call(this.vm, value, oldVal); 
         }
     },
     addDep: function(dep) {
@@ -43,11 +41,18 @@ Watcher.prototype = {
         // 例如：当前watcher的是'child.child.name', 那么child, child.child, child.child.name这三个属性的dep都会加入当前watcher
         if (!this.depIds.hasOwnProperty(dep.id)) {
             dep.addSub(this);
+            // 往当前watcher实例对象添加数据的每个订阅器
             this.depIds[dep.id] = dep;
         }
     },
-    get: function() {
+    get: function() {// 必须是数据绑定的指令，并且指令值不是函数才会到此函数
+        // 设置Dep对象的target指向当前watcher实例
         Dep.target = this;
+        // 调用getter函数：可能是传入的函数也可能是vm实例data的属性名
+        // 如果是vm实例data的的属性名会有按下述执行
+        // 事实上是调用this.parseGetter的闭包函数,闭包函数会访问this.vm.指令值
+        // 因此访问了访问器属性，此时会调用访问器属性的get方法
+        // get方法会根据此时的Dep的targer，添加监听
         var value = this.getter.call(this.vm, this.vm);
         Dep.target = null;
         return value;

@@ -16,7 +16,11 @@ Compile.prototype = {
             child;
         // 将原生节点拷贝到fragment
         while (child = el.firstChild) {
-            fragment.appendChild(child);
+            if (child.nodeType === 3) {
+                el.removeChild(el.firstChild)
+            } else {
+                fragment.appendChild(child);
+            }
         }
         return fragment;
     },
@@ -124,7 +128,7 @@ var compileUtil = {
         this.bind(node, vm, exp, 'class');
     },
 
-    bind: function(node, vm, exp, dir) {// 普通指令，并且给view添加监听
+    bind: function(node, vm, exp, dir) {// 普通指令,（错误理解：并且给view添加监听）
         /*
             node => 参数当前元素节点
             vm => vm实例对象
@@ -132,7 +136,7 @@ var compileUtil = {
             dir => 指令或者事件名
         */
         var updaterFn = updater[dir + 'Updater'];
-
+        // console.log('此时是数据绑定的指令调用了')
         updaterFn && updaterFn(node, this._getVMVal(vm, exp));
 
         new Watcher(vm, exp, function(value, oldValue) {
@@ -154,7 +158,6 @@ var compileUtil = {
         var val = vm;
         exp = exp.split('.');
         exp.forEach(function(k) {
-            console.log(val)
             val = val[k];
         });
         return val;
